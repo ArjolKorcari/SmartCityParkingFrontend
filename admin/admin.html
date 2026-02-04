@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin – Smart City Parking</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <!-- Leaflet Draw -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        header { padding: 10px; background: #222; color: white; }
+        #map { height: 70vh; }
+        #form {
+            padding: 10px;
+            background: #f4f4f4;
+        }
+        input, select, button {
+            display: block;
+            margin: 5px 0;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2>🛠️ Admin Panel – Parking Management</h2>
+    <p id="selectedArea">Selected Area ID: none</p>
+</header>
+
+<div id="map"></div>
+
+<div id="form">
+    <h3>Parking Area</h3>
+
+    <input id="name" placeholder="Parking name"/>
+    <select id="type">
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+        <option value="disabled">Disabled</option>
+    </select>
+
+    <input id="capacity" type="number" placeholder="Total capacity"/>
+    <input id="available" type="number" placeholder="Available spaces"/>
+    <input id="price" type="number" placeholder="Price per hour"/>
+
+    <button onclick="saveParking()">💾 Save Parking Area</button>
+
+    <hr>
+
+    <h3>Parking Spot</h3>
+    <button onclick="saveParkingSpot()">📍 Save Parking Spot</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script src="/admin/admin.js"></script>
+
+</body>
+</html>

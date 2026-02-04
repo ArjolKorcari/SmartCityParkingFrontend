@@ -1,0 +1,35 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+#map {
+    height: 70vh;
+}
+
+#form {
+    padding: 15px;
+    background: #f9fafb;
+}
+
+#form input, #form select {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
