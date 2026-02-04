@@ -50,8 +50,17 @@ map.on(L.Draw.Event.CREATED, function (event) {
 
 // Save parking area
 function saveParking() {
-    if (!drawnAreaGeometry) {
-        alert("❌ Draw a parking area first");
+    let geometryToSave = drawnAreaGeometry;
+
+    if (selectedParkingAreaId) {
+        const selectedLayer = parkingAreasLayer.getLayers().find(layer => layer._parkingId === selectedParkingAreaId);
+        if (selectedLayer) {
+            geometryToSave = selectedLayer.toGeoJSON().geometry;
+        }
+    }
+
+    if (!geometryToSave) {
+        alert("❌ Draw or select a parking area first");
         return;
     }
 
@@ -61,21 +70,58 @@ function saveParking() {
         totalCapacity: Number(document.getElementById('capacity').value),
         availableSpaces: Number(document.getElementById('available').value),
         pricePerHour: Number(document.getElementById('price').value),
-        geometry: drawnAreaGeometry
+        geometry: geometryToSave
     };
 
-    fetch(API_PARKING, {
-        method: 'POST',
+    let url = API_PARKING;
+    let method = 'POST';
+    let successMessage = "✅ Parking Area Saved";
+
+    if (selectedParkingAreaId) {
+        url = `${API_PARKING}/${selectedParkingAreaId}`;
+        method = 'PUT';
+        successMessage = "✅ Parking Area Updated";
+    }
+
+    fetch(url, {
+        method: method,
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(parkingArea)
     })
         .then(res => res.json())
         .then(data => {
-            alert("✅ Parking Area Saved");
+            alert(successMessage);
             drawnAreaGeometry = null;
             loadParkingAreas();
         })
         .catch(err => alert(err));
+}
+
+// Delete parking area
+function deleteParking() {
+    if (!selectedParkingAreaId) {
+        alert("❌ Select a parking area first");
+        return;
+    }
+
+    if (confirm("Are you sure you want to delete this parking area?")) {
+        fetch(`${API_PARKING}/${selectedParkingAreaId}`, {
+            method: 'DELETE'
+        })
+            .then(() => {
+                alert("✅ Parking Area Deleted");
+                selectedParkingAreaId = null;
+                document.getElementById('selectedArea').innerText = "Selected Area ID: none";
+                // Clear form
+                document.getElementById('name').value = '';
+                document.getElementById('type').value = 'public';
+                document.getElementById('capacity').value = '';
+                document.getElementById('available').value = '';
+                document.getElementById('price').value = '';
+                loadParkingAreas();
+            })
+            .catch(err => alert(err));
+    }
 }
 
 // Load parking areas from backend
@@ -87,10 +133,19 @@ function loadParkingAreas() {
 
             L.geoJSON(data, {
                 onEachFeature: (feature, layer) => {
+                    layer._parkingId = feature.properties.id;
                     layer.on('click', () => {
-                        selectedParkingAreaId = feature.properties.parkingAreaId;
+                        selectedParkingAreaId = feature.properties.id;
                         document.getElementById('selectedArea').innerText =
                             `Selected Area ID: ${selectedParkingAreaId}`;
+                        // Populate form for editing
+                        document.getElementById('name').value = feature.properties.name;
+                        document.getElementById('type').value = feature.properties.type;
+                        document.getElementById('capacity').value = feature.properties.totalCapacity;
+                        document.getElementById('available').value = feature.properties.availableSpaces;
+                        document.getElementById('price').value = feature.properties.pricePerHour;
+                        // Set geometry for potential updates
+                        drawnAreaGeometry = feature.geometry;
                         loadParkingSpots(selectedParkingAreaId);
                     });
                 }
@@ -110,7 +165,7 @@ function saveParkingSpot() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             status: "available",
-            parkingArea: {parkingAreaId: selectedParkingAreaId},
+            parkingAreaId: selectedParkingAreaId,
             geometry: selectedSpotGeometry
         })
     })
@@ -123,13 +178,20 @@ function saveParkingSpot() {
 
 // Load spots for selected area
 function loadParkingSpots(areaId) {
+    if (!areaId) return; // Prevent loading with undefined
+
     parkingSpotsLayer.clearLayers();
 
     fetch(`${API_SPOTS}/area/${areaId}`)
         .then(res => res.json())
         .then(data => {
-            L.geoJSON(data).addTo(parkingSpotsLayer);
-        });
+            L.geoJSON(data, {
+                pointToLayer: function (feature, latlng) {
+                    return L.marker(latlng);
+                }
+            }).addTo(parkingSpotsLayer);
+        })
+        .catch(err => console.error(err));
 }
 
 // Initial load
