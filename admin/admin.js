@@ -177,22 +177,53 @@ function saveParkingSpot() {
 }
 
 // Load spots for selected area
+// Load spots for selected parking area
 function loadParkingSpots(areaId) {
-    if (!areaId) return; // Prevent loading with undefined
+    if (!areaId) return;
 
+    // Clear existing spots
     parkingSpotsLayer.clearLayers();
 
     fetch(`${API_SPOTS}/area/${areaId}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("Failed to load parking spots");
+            }
+            return res.json();
+        })
         .then(data => {
-            L.geoJSON(data, {
-                pointToLayer: function (feature, latlng) {
-                    return L.marker(latlng);
+            if (!Array.isArray(data) || data.length === 0) {
+                return; // No spots for this area
+            }
+
+            // Convert backend response to GeoJSON FeatureCollection
+            const geoJson = {
+                type: "FeatureCollection",
+                features: data
+                    .filter(spot => spot.geometry) // safety check
+                    .map(spot => ({
+                        type: "Feature",
+                        geometry: spot.geometry,
+                        properties: {
+                            spotId: spot.spotId,
+                            status: spot.status
+                        }
+                    }))
+            };
+
+            L.geoJSON(geoJson, {
+                pointToLayer: (feature, latlng) => {
+                    return L.marker(latlng, {
+                        title: `Spot ${feature.properties.spotId}`
+                    });
                 }
             }).addTo(parkingSpotsLayer);
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+            console.error("❌ Error loading parking spots:", err);
+        });
 }
+
 
 // Initial load
 loadParkingAreas();
