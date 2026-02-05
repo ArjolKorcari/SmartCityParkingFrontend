@@ -1,65 +1,106 @@
 const API_URL = 'http://localhost:8080/api/parking';
 
+// Map
 const map = L.map('map').setView([41.3275, 19.8187], 13);
 
+// Tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
-let parkingLayer = L.geoJSON().addTo(map);
+// Layer (DO NOT recreate this)
+const parkingLayer = L.featureGroup().addTo(map);
 
-function colorByAvailability(feature) {
-    return feature.properties.availableSpaces > 0 ? 'green' : 'red';
+// ---------- COLOR LOGIC ----------
+function getColorByCapacity(available, total) {
+    if (!total || total === 0) return '#6b7280'; // gray
+
+    const ratio = available / total;
+
+    if (ratio > 0.5) return '#22c55e'; // green
+    if (ratio > 0.2) return '#facc15'; // yellow
+    if (ratio > 0)   return '#ef4444'; // red
+
+    return '#6b7280'; // full
 }
 
-function renderGeoJson(data) {
+// ---------- RENDER ----------
+function renderParking(data) {
     parkingLayer.clearLayers();
 
-    parkingLayer = L.geoJSON(data, {
-        style: feature => ({
-            color: colorByAvailability(feature),
-            fillOpacity: 0.5,
-            weight: 2
-        }),
+    L.geoJSON(data, {
+        style: feature => {
+            const p = feature.properties;
+            return {
+                color: '#111827',
+                weight: 1,
+                fillColor: getColorByCapacity(
+                    p.availableSpaces,
+                    p.totalCapacity
+                ),
+                fillOpacity: 0.75
+            };
+        },
         onEachFeature: (feature, layer) => {
             const p = feature.properties;
+
             layer.bindPopup(`
-                <b>${p.name}</b><br/>
+                <strong>${p.name}</strong><br/>
                 Type: ${p.type}<br/>
-                Capacity: ${p.availableSpaces}/${p.totalCapacity}<br/>
-                Price: €${p.pricePerHour}/hour
+                Available: <b>${p.availableSpaces}</b> / ${p.totalCapacity}<br/>
+                Price: €${p.pricePerHour}/h
             `);
         }
-    }).addTo(map);
+    }).addTo(parkingLayer);
 }
 
+// ---------- LOAD ALL ----------
 function loadAll() {
     fetch(API_URL)
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-            return res.json();
-        })
-        .then(renderGeoJson)
-        .catch(err => console.error('Fetch error:', err));
+        .then(res => res.json())
+        .then(renderParking)
+        .catch(err => console.error(err));
 }
 
-// Do the same for findNearby()
+// ---------- NEARBY ----------
+let userMarker = null;
 
 function findNearby() {
     navigator.geolocation.getCurrentPosition(pos => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
 
-        L.marker([lat, lng])
+        if (userMarker) map.removeLayer(userMarker);
+
+        userMarker = L.marker([lat, lng])
             .addTo(map)
             .bindPopup("📍 You are here")
             .openPopup();
 
+        map.setView([lat, lng], 15);
+
         fetch(`${API_URL}/nearby?lat=${lat}&lng=${lng}&radius=500`)
             .then(res => res.json())
-            .then(renderGeoJson);
-    });
+            .then(renderParking);
+    }, () => alert("Location access denied"));
 }
 
-// Load on startup
+// ---------- LEGEND ----------
+const legend = L.control({ position: 'bottomright' });
+
+legend.onAdd = function () {
+    const div = L.DomUtil.create('div', 'legend');
+    div.innerHTML = `
+        <h4>Availability</h4>
+        <div><span style="background:#22c55e"></span> Plenty</div>
+        <div><span style="background:#facc15"></span> Limited</div>
+        <div><span style="background:#ef4444"></span> Almost full</div>
+        <div><span style="background:#6b7280"></span> Full</div>
+    `;
+    return div;
+};
+
+legend.addTo(map);
+
+// Initial load
 loadAll();
