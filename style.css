@@ -1,20 +1,81 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
+    background: #f3f4f6;
 }
 
-header {
-    background: #1f2937;
-    color: white;
-    text-align: center;
-    padding: 10px;
-}
-
-#controls {
-    padding: 10px;
-    text-align: center;
-}
-
+/* MAP */
 #map {
-    height: calc(100vh - 120px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* TOP BAR */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: linear-gradient(90deg, #0f172a, #1e293b);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 20px;
+    z-index: 1001;
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.subtitle {
+    font-size: 12px;
+    opacity: 0.85;
+}
+
+/* FLOATING BUTTONS */
+.floating-panel {
+    position: fixed;
+    top: 90px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1002;
+}
+
+.btn {
+    border: none;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn.secondary {
+    background: white;
+    color: #1f2937;
 }

@@ -1,23 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Smart City Parking GIS</title>
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <meta charset="UTF-8"/>
+    <title>Smart City Parking</title>
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-    <h2>🚗 Smart City Parking Management</h2>
+<!-- Map FIRST -->
+<div id="map"></div>
+
+<!-- Top Bar -->
+<header class="topbar">
+    <div class="logo">🚗 Smart Parking</div>
+    <div class="subtitle">Find available parking in real time</div>
 </header>
 
-<div id="controls">
-    <button onclick="loadAll()">All Parking Areas</button>
-    <button onclick="findNearby()">Nearby (500m)</button>
-</div>
+<!-- Floating Controls -->
+<div class="floating-panel">
+    <button class="btn primary" onclick="loadAll()">
+        🅿️ All Parking Areas
+    </button>
 
-<div id="map"></div>
+    <button class="btn secondary" onclick="findNearby()">
+        📍 Nearby (500m)
+    </button>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="app.js"></script>
