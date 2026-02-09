@@ -104,25 +104,39 @@ function deleteParking() {
         return;
     }
 
-    if (confirm("Are you sure you want to delete this parking area?")) {
-        fetch(`${API_PARKING}/${selectedParkingAreaId}`, {
-            method: 'DELETE'
-        })
-            .then(() => {
-                alert("✅ Parking Area Deleted");
-                selectedParkingAreaId = null;
-                document.getElementById('selectedArea').innerText = "Selected Area ID: none";
-                // Clear form
-                document.getElementById('name').value = '';
-                document.getElementById('type').value = 'public';
-                document.getElementById('capacity').value = '';
-                document.getElementById('available').value = '';
-                document.getElementById('price').value = '';
-                loadParkingAreas();
-            })
-            .catch(err => alert(err));
+    if (!confirm("Are you sure you want to remove this parking area from view?")) {
+        return;
     }
+
+    // 🔥 Remove selected layer from map (frontend only)
+    parkingAreasLayer.eachLayer(layer => {
+        if (layer._parkingId === selectedParkingAreaId) {
+            parkingAreasLayer.removeLayer(layer);
+        }
+    });
+
+    // 🔥 Remove parking spots visually
+    parkingSpotsLayer.clearLayers();
+
+    // 🔥 Reset state
+    selectedParkingAreaId = null;
+    drawnAreaGeometry = null;
+    selectedSpotGeometry = null;
+
+    document.getElementById('selectedArea').innerText =
+        "Selected Area ID: none";
+
+    // Clear form
+    document.getElementById('name').value = '';
+    document.getElementById('type').value = 'public';
+    document.getElementById('capacity').value = '';
+    document.getElementById('available').value = '';
+    document.getElementById('price').value = '';
+
+    alert("🗑️ Parking area removed from map (frontend only)");
 }
+
+
 
 // Load parking areas from backend
 function loadParkingAreas() {
